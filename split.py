@@ -90,10 +90,10 @@ def main(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input")
-    parser.add_argument("train")
-    parser.add_argument("dev")
-    parser.add_argument("test")
+    parser.add_argument("input", help="file to split")
+    parser.add_argument("train", help="destination for training data")
+    parser.add_argument("dev", help="destination for development data")
+    parser.add_argument("test", help="destination for test data")
     parser.add_argument(
         "-s",
         "--seed",
