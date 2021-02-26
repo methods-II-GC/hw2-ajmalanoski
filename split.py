@@ -4,7 +4,7 @@
 import argparse
 import random
 
-from typing import Iterator, IO, List
+from typing import Iterator, IO, List, Union
 
 
 def read_tags(path: str) -> Iterator[List[List[str]]]:
@@ -27,6 +27,32 @@ def read_tags(path: str) -> Iterator[List[List[str]]]:
         yield lines
 
 
+def write_sentence(
+    outs: List[List[Union[IO, int]]], sentence: List[List[str]]
+) -> int:
+    """
+    Args:
+    outs: List of lists, each consisting of a file, the count of entries
+        written to that file, and the cutoff for that file.
+    sentence: A sentence as a list of lists of tags, each list of tags being
+        a word
+
+    Returns the index of the file that was written to, or -1 if all the files
+    are "full."
+    """
+    if not outs:
+        return -1
+
+    index = random.choice(range(len(outs)))
+    if outs[index][1] < outs[index][2]:
+        write_tags(outs[index][0], sentence)
+        return index
+    else:
+        others = outs.copy()
+        del others[index]
+        return write_sentence(others, sentence)
+
+
 def write_tags(wf: IO, tags: List[List[str]]) -> None:
     for line in tags:
         line = " ".join(line)
@@ -35,8 +61,9 @@ def write_tags(wf: IO, tags: List[List[str]]) -> None:
 
 
 def main(args: argparse.Namespace) -> None:
+    random.seed(args.seed)
     length = 0
-    with open(args.input, 'r') as rf:
+    with open(args.input, "r") as rf:
         for line in rf:
             # We count sentences by counting blank lines.
             if not line.strip():
@@ -44,38 +71,21 @@ def main(args: argparse.Namespace) -> None:
     train_cutoff = round(length * 0.8)
     dev_cutoff = round(length * 0.1)
     test_cutoff = dev_cutoff
-    train_size = 0
-    dev_size = 0
-    test_size = 0
-    with open(args.train, 'w') as tf, open(args.dev, 'w') as df:
-        with open(args.test, 'w') as ef:
+    with open(args.train, "w") as tf, open(args.dev, "w") as df:
+        with open(args.test, "w") as ef:
+            # List of filestreams, the count of sentences written to them so
+            # far, and the maximum number of sentences to write to them.
+            outs = [
+                [tf, 0, train_cutoff],
+                [df, 0, dev_cutoff],
+                [ef, 0, test_cutoff],
+            ]
             for sentence in read_tags(args.input):
-                # 0 for train, 1 for dev, 2 for test
-                write_to = random.choice(range(3))
-                if write_to == 0:
-                    if train_size < train_cutoff:
-                        write_tags(tf, sentence)
-                        train_size += 1
-                    else:
-                        write_to = 1
-                if write_to == 1:
-                    if dev_size < dev_cutoff:
-                        write_tags(df, sentence)
-                        dev_size += 1
-                    else:
-                        write_to = 2
-                if write_to == 2:
-                    if test_size < test_cutoff:
-                        write_tags(ef, sentence)
-                        test_size += 1
-                    elif train_size < train_cutoff:
-                        write_tags(tf, sentence)
-                        train_size += 1
-                    elif dev_size < dev_cutoff:
-                        write_tags(df, sentence)
-                        dev_size += 1
-                    else:
-                        return
+                index = write_sentence(outs, sentence)
+                if index >= 0:
+                    outs[index][1] += 1
+                else:
+                    return
 
 
 if __name__ == "__main__":
@@ -84,4 +94,11 @@ if __name__ == "__main__":
     parser.add_argument("train")
     parser.add_argument("dev")
     parser.add_argument("test")
+    parser.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        required=True,
+        help="seed for random number generator",
+    )
     main(parser.parse_args())
