@@ -32,7 +32,7 @@ def write_sentence(
 ) -> int:
     """
     Args:
-    outs: List of lists, each consisting of a file, the count of entries
+    outs: List of tuples, each consisting of a file, the count of entries
         written to that file, and the cutoff for that file.
     sentence: A sentence as a list of lists of tags, each list of tags being
         a word
