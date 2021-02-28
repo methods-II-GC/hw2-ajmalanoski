@@ -4,7 +4,7 @@
 import argparse
 import random
 
-from typing import Iterator, IO, List, Union
+from typing import Iterator, IO, List, Tuple, Union
 
 
 def read_tags(path: str) -> Iterator[List[List[str]]]:
@@ -28,7 +28,7 @@ def read_tags(path: str) -> Iterator[List[List[str]]]:
 
 
 def write_sentence(
-    outs: List[List[Union[IO, int]]], sentence: List[List[str]]
+    outs: List[Tuple[IO, int, int]], sentence: List[List[str]]
 ) -> int:
     """
     Args:
@@ -42,7 +42,6 @@ def write_sentence(
     """
     if not outs:
         return -1
-
     index = random.choice(range(len(outs)))
     if outs[index][1] < outs[index][2]:
         write_tags(outs[index][0], sentence)
@@ -55,8 +54,8 @@ def write_sentence(
 
 def write_tags(wf: IO, tags: List[List[str]]) -> None:
     for line in tags:
-        line = " ".join(line)
-        print(line, file=wf)
+        word = " ".join(line)
+        print(word, file=wf)
     print("", file=wf)
 
 
@@ -75,15 +74,19 @@ def main(args: argparse.Namespace) -> None:
         with open(args.test, "w") as ef:
             # List of filestreams, the count of sentences written to them so
             # far, and the maximum number of sentences to write to them.
-            outs = [
-                [tf, 0, train_cutoff],
-                [df, 0, dev_cutoff],
-                [ef, 0, test_cutoff],
+            outs: List[Tuple[IO, int, int]] = [
+                (tf, 0, train_cutoff),
+                (df, 0, dev_cutoff),
+                (ef, 0, test_cutoff),
             ]
             for sentence in read_tags(args.input):
                 index = write_sentence(outs, sentence)
                 if index >= 0:
-                    outs[index][1] += 1
+                    outs[index] = (
+                        outs[index][0],
+                        outs[index][1] + 1,
+                        outs[index][2],
+                    )
                 else:
                     return
 
