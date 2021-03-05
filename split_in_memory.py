@@ -6,6 +6,7 @@ import random
 
 from typing import Iterator, IO, List
 
+
 def read_tags(path: str) -> Iterator[List[List[str]]]:
     """
     Iterates over a file in multi-column tabular format, one sentence at a
@@ -47,6 +48,8 @@ def main(args: argparse.Namespace) -> None:
     random.seed(args.seed)
     corpus = list(read_tags(args.input))
     length = len(corpus)
+    # Figure out cutoffs (as indices of `corpus`) for the training,
+    # development, and test files.
     train_cutoff = round(length * args.train_size)
     dev_cutoff = train_cutoff + round(length * args.dev_size)
     test_cutoff = dev_cutoff + round(length * args.test_size)
