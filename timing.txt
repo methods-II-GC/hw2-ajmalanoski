@@ -1,0 +1,15 @@
+Outcome of timing the two versions of the splitting algorithm.
+
+split.py
+0.27s user 0.03s system 54% cpu 0.547 total
+0.28s user 0.03s system 95% cpu 0.320 total
+0.28s user 0.03s system 95% cpu 0.315 total
+0.28s user 0.03s system 95% cpu 0.318 total
+0.28s user 0.03s system 95% cpu 0.322 total
+
+split_in_memory.py
+0.39s user 0.05s system 95% cpu 0.459 total
+0.39s user 0.05s system 95% cpu 0.452 total
+0.38s user 0.05s system 96% cpu 0.447 total
+0.39s user 0.05s system 96% cpu 0.461 total
+0.39s user 0.05s system 96% cpu 0.455 total
